@@ -133,7 +133,7 @@ GENERAL_ACTIONS = {
 st.set_page_config(
     page_title="Disaster Awareness Chatbot",
     page_icon="🌍",
-    layout="centered"
+    layout="wide"  # <-- use wide to allow side columns
 )
 
 st.title("🌍 Disaster Awareness Assistant")
@@ -142,13 +142,23 @@ st.write(
     "You will get clear answers with **what to do, why, and how**."
 )
 
-# Chat history
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+# Chat history + mascot
+col1, col2 = st.columns([3, 1])  # 3:1 ratio, chat left, mascot right
 
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
+with col2:
+    st.image("robo.png", width=150, caption="Your friendly safety guide")  # Add your mascot here
+
+with col1:
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    # Display previous messages
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+    # Chat input and response handling goes here (your existing code)
+
 
 # =========================
 # Helper functions
