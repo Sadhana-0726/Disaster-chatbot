@@ -46,7 +46,6 @@ DISASTER_HAZARD_CATEGORIES = {
             }
         }
     },
-
     "flood": {
         "safe": {
             "roof": {
@@ -133,37 +132,29 @@ GENERAL_ACTIONS = {
 st.set_page_config(
     page_title="Disaster Awareness Chatbot",
     page_icon="🌍",
-    layout="wide"  # <-- use wide to allow side columns
+    layout="wide"
 )
 
+# =========================
+# Sidebar: Big static mascot
+# =========================
+st.sidebar.image("robo.png", width=500, caption="Your friendly safety guide")
+
+# =========================
+# Main Chat Area
+# =========================
 st.title("🌍 Disaster Awareness Assistant")
 st.write(
     "Ask about **earthquake, flood, or cyclone safety**.\n"
     "You will get clear answers with **what to do, why, and how**."
 )
 
-# Chat history + mascot
-col1, col2 = st.columns([3, 1])  # 3:1 ratio, chat left, mascot right
-
-with col2:
-    st.image("robo.png", width=150, caption="Your friendly safety guide")  # Add your mascot here
-
-with col1:
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-
-    # Display previous messages
-    for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
-
-    # Chat input and response handling goes here (your existing code)
-
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
 # =========================
 # Helper functions
 # =========================
-
 def detect_disaster(text):
     text = text.lower()
     if "earthquake" in text or "quake" in text:
@@ -254,8 +245,11 @@ def generate_answer(user_text):
     return GENERAL_ACTIONS[disaster]
 
 # =========================
-# User input
+# Chat input and history
 # =========================
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
 
 user_input = st.chat_input("Ask about disaster safety...")
 
