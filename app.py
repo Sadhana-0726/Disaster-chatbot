@@ -192,33 +192,56 @@ def detect_location(text, disaster):
                 return cat, place
     return None, None
 
+def detect_place_only(text):
+    places = [
+        "window", "windows", "road", "tree", "roof",
+        "table", "desk", "basement", "higher floor"
+    ]
+    for p in places:
+        if p in text.lower():
+            return p
+    return None
+
 def generate_answer(user_text):
     disaster = detect_disaster(user_text) or get_last_disaster()
+
+    # Definition
+    if is_definition_question(user_text) and disaster:
+        return DISASTER_DEFINITIONS[disaster]
+
+    # General actions
+    if is_general_action_question(user_text) and disaster:
+        return GENERAL_ACTIONS[disaster]
+
+    # Location-based with disaster
+    if disaster:
+        cat, place = detect_location(user_text, disaster)
+        if cat:
+            info = DISASTER_HAZARD_CATEGORIES[disaster][cat][place]
+            prefix = "Yes, safer." if cat == "safe" else "No, not safe."
+            return (
+                f"{prefix} {info['reason']}\n\n"
+                f"What to do:\n{info['solution']}\n\n"
+                f"How:\n{info['how']}"
+            )
+
+    # Place mentioned but no disaster
+    place_only = detect_place_only(user_text)
+    if place_only:
+        return (
+            "No, it is not safe.\n\n"
+            "Why:\n"
+            "Certain places like windows, roads, or trees can become dangerous during disasters.\n\n"
+            "What to do:\n"
+            "Move to a safer interior or open area depending on the situation.\n\n"
+            "How:\n"
+            "Stay calm, protect your head, and follow official safety instructions."
+        )
 
     if not disaster:
         return "Please mention the disaster (earthquake, flood, or cyclone)."
 
-    if is_definition_question(user_text):
-        return DISASTER_DEFINITIONS[disaster]
-
-    if is_general_action_question(user_text):
-        return GENERAL_ACTIONS[disaster]
-
-    cat, place = detect_location(user_text, disaster)
-
-    if cat:
-        info = DISASTER_HAZARD_CATEGORIES[disaster][cat][place]
-        prefix = "Yes, safer." if cat == "safe" else "No, not safe."
-        return (
-            f"{prefix} {info['reason']}\n\n"
-            f"What to do:\n{info['solution']}\n\n"
-            f"How:\n{info['how']}"
-        )
-
-    return (
-        f"I couldn't identify the exact situation.\n\n"
-        f"General advice for {disaster}:\n{GENERAL_ACTIONS[disaster]}"
-    )
+    return GENERAL_ACTIONS[disaster]
 
 # =========================
 # User input
