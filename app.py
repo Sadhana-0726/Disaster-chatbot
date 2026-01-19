@@ -1,9 +1,62 @@
 import streamlit as st
 
+st.error("RUNNING VERSION: v3-location-fix")
+
+# =========================
+# Page config
+# =========================
+st.set_page_config(
+    page_title="Disaster Awareness Chatbot",
+    page_icon="🌍",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# =========================
+# FIXED SIDEBAR MASCOT
+# =========================
+st.markdown(
+    """
+    <style>
+    section[data-testid="stSidebar"] {
+        width: 420px !important;
+        min-width: 420px !important;
+    }
+
+    .fixed-mascot {
+        position: fixed;
+        bottom: 40px;
+        left: 40px;
+        width: 340px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+with st.sidebar:
+    st.markdown('<div class="fixed-mascot">', unsafe_allow_html=True)
+    st.image("robo.png", use_container_width=True)
+    st.markdown(
+        """
+        <p style="
+            text-align:center;
+            color:#cfd8e3;
+            font-size:16px;
+            line-height:1.4;
+            margin-top:12px;
+        ">
+        Hi! I’m your little safety mascot<br>
+        I’ll help you stay calm, informed, and prepared.
+        </p>
+        """,
+        unsafe_allow_html=True
+    )
+    st.markdown("</div>", unsafe_allow_html=True)
+
 # =========================
 # Disaster knowledge base
 # =========================
-
 DISASTER_HAZARD_CATEGORIES = {
     "earthquake": {
         "safe": {
@@ -16,148 +69,149 @@ DISASTER_HAZARD_CATEGORIES = {
                 "reason": "Desks can shield you from falling objects.",
                 "solution": "Take cover under the desk.",
                 "how": "Hold the desk legs and protect your head."
-            },
-            "open area": {
-                "reason": "Open areas reduce the risk of falling debris.",
-                "solution": "Move to an open area away from buildings.",
-                "how": "Stay low and protect your head."
             }
         },
         "unsafe": {
-            "tree": {
-                "reason": "Trees may fall or drop branches during shaking.",
-                "solution": "Move away from trees to an open area.",
-                "how": "Cover your head and stay alert."
-            },
-            "road": {
-                "reason": "Nearby buildings or poles may collapse.",
-                "solution": "Move away from buildings to an open space.",
-                "how": "Drop, Cover, and Hold On if debris starts falling."
-            },
             "window": {
                 "reason": "Glass can shatter and cause serious injuries.",
                 "solution": "Move away from windows.",
                 "how": "Take cover under sturdy furniture."
             },
-            "roof": {
-                "reason": "Upper levels experience stronger shaking.",
-                "solution": "Stay inside and take cover immediately.",
-                "how": "Get under sturdy furniture."
+            "tree": {
+                "reason": "Trees may fall or drop branches.",
+                "solution": "Move to an open area.",
+                "how": "Protect your head."
             }
         }
     },
     "flood": {
         "safe": {
-            "roof": {
-                "reason": "Roofs keep you above rising floodwater.",
-                "solution": "Move to the roof if water is rising rapidly.",
-                "how": "Avoid edges and signal for help."
-            },
             "higher floor": {
-                "reason": "Higher floors are safer than ground level.",
-                "solution": "Move to higher floors inside your house.",
-                "how": "Avoid basements and ground floors."
+                "reason": "Higher floors stay above floodwater.",
+                "solution": "Move to higher floors.",
+                "how": "Avoid basements."
             }
         },
         "unsafe": {
             "road": {
-                "reason": "Floodwater can sweep people away.",
-                "solution": "Move to higher ground immediately.",
+                "reason": "Floodwater can sweep you away.",
+                "solution": "Move to higher ground.",
                 "how": "Never walk or drive through floodwater."
+            }
+        }
+    },
+    "cyclone": {
+        "safe": {
+            "interior room": {
+                "reason": "Interior rooms are protected from strong winds and flying debris.",
+                "solution": "Stay in an interior room away from doors and windows.",
+                "how": "Choose a small room on the lowest level of a strong building."
+            }
+        },
+        "unsafe": {
+            "window": {
+                "reason": "Strong winds can shatter glass and turn debris into projectiles.",
+                "solution": "Move away from windows immediately.",
+                "how": "Go to an interior room and stay low."
             },
-            "tree": {
-                "reason": "Trees can collapse or be submerged.",
-                "solution": "Move to a stable building or higher ground.",
-                "how": "Avoid standing near trees in floods."
-            },
-            "basement": {
-                "reason": "Basements fill quickly with water.",
-                "solution": "Move to upper floors.",
-                "how": "Evacuate early if possible."
+            "balcony": {
+                "reason": "High winds can knock you over or throw debris.",
+                "solution": "Go indoors to a safe shelter.",
+                "how": "Close doors and stay inside."
             }
         }
     }
 }
 
+# =========================
+# DEFINITIONS (UNCHANGED)
+# =========================
 DISASTER_DEFINITIONS = {
     "earthquake": (
-        "An earthquake is the sudden shaking of the ground caused by movement "
-        "of tectonic plates beneath the Earth’s surface."
+        "An earthquake is a sudden shaking of the ground caused by movements "
+        "within the Earth's crust. These movements release stored energy in the "
+        "form of seismic waves, which can cause buildings to shake, crack, or collapse. "
+        "Earthquakes often occur without warning and can lead to injuries, fires, "
+        "and damage to infrastructure."
     ),
     "flood": (
-        "A flood occurs when water overflows onto normally dry land, often due "
-        "to heavy rain, river overflow, or dam failure."
+        "A flood occurs when a large amount of water overflows onto normally dry land. "
+        "Floods can be caused by heavy rainfall, overflowing rivers, dam failures, "
+        "or storm surges. Floodwater can move very fast, carry debris, and contaminate "
+        "water supplies, making it extremely dangerous to people and property."
     ),
     "cyclone": (
-        "A cyclone is a large rotating storm system with strong winds and heavy rain. "
-        "In India, cyclones usually form over warm oceans and cause wind damage, "
-        "flooding, and storm surges."
+        "A cyclone is a powerful rotating storm system that forms over warm ocean waters. "
+        "It is characterized by very strong winds, heavy rainfall, and sometimes storm surges. "
+        "Cyclones can cause widespread damage to buildings, power lines, trees, and roads, "
+        "and may also lead to flooding and loss of life."
     )
 }
 
 GENERAL_ACTIONS = {
-    "earthquake": (
-        "During an earthquake, **Drop, Cover, and Hold On**.\n\n"
-        "What to do:\n"
-        "- Get under sturdy furniture (table or desk)\n"
-        "- Stay away from windows\n"
-        "- Do not use elevators\n\n"
-        "Why:\n"
-        "Most injuries occur due to falling objects and glass."
-    ),
-    "flood": (
-        "During a flood, move to **higher ground immediately**.\n\n"
-        "What to do:\n"
-        "- Avoid roads and floodwater\n"
-        "- Move to higher floors or roofs\n"
-        "- Follow evacuation orders\n\n"
-        "Why:\n"
-        "Floodwater can rise quickly and sweep people away."
-    ),
-    "cyclone": (
-        "During a cyclone, stay **indoors in a strong building**.\n\n"
-        "What to do:\n"
-        "- Stay away from windows and doors\n"
-        "- Keep emergency supplies ready\n"
-        "- Follow official warnings\n\n"
-        "Why:\n"
-        "Cyclones cause strong winds, flying debris, and heavy rain."
-    )
+    "earthquake": {
+        "do": [
+            "Drop, Cover, and Hold On.",
+            "Take cover under sturdy furniture.",
+            "Stay away from windows."
+        ],
+        "dont": [
+            "Do not run outside during shaking.",
+            "Do not use elevators."
+        ],
+        "why": (
+            "Falling objects, broken glass, and structural collapse "
+            "are the biggest causes of injury during earthquakes."
+        )
+    },
+    "flood": {
+        "do": [
+            "Move to higher ground or higher floors immediately.",
+            "Follow evacuation instructions issued by authorities.",
+            "Keep emergency supplies and important documents ready."
+        ],
+        "dont": [
+            "Do not walk, swim, or drive through floodwater.",
+            "Do not touch electrical equipment if you are wet or standing in water."
+        ],
+        "why": (
+            "Floodwater can be fast-moving, electrically charged, and contaminated."
+        )
+    },
+    "cyclone": {
+        "do": [
+            "Stay indoors in a strong building.",
+            "Secure loose objects.",
+            "Keep emergency supplies ready."
+        ],
+        "dont": [
+            "Do not go outside during strong winds.",
+            "Do not ignore evacuation warnings."
+        ],
+        "why": (
+            "Cyclones bring extreme winds and flooding that can cause serious harm."
+        )
+    }
 }
 
 # =========================
-# Streamlit setup
+# Chat state
 # =========================
-
-st.set_page_config(
-    page_title="Disaster Awareness Chatbot",
-    page_icon="🌍",
-    layout="wide"
-)
-
-# =========================
-# Sidebar: Big static mascot
-# =========================
-st.sidebar.image("robo.png", width=500, caption="Your friendly safety guide")
-
-# =========================
-# Main Chat Area
-# =========================
-st.title("🌍 Disaster Awareness Assistant")
-st.write(
-    "Ask about **earthquake, flood, or cyclone safety**.\n"
-    "You will get clear answers with **what to do, why, and how**."
-)
-
 if "messages" not in st.session_state:
     st.session_state.messages = []
+
+if "last_disaster" not in st.session_state:
+    st.session_state.last_disaster = None
+
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
 
 # =========================
 # Helper functions
 # =========================
 def detect_disaster(text):
-    text = text.lower()
-    if "earthquake" in text or "quake" in text:
+    if "earthquake" in text:
         return "earthquake"
     if "flood" in text:
         return "flood"
@@ -165,92 +219,57 @@ def detect_disaster(text):
         return "cyclone"
     return None
 
-def get_last_disaster():
-    for msg in reversed(st.session_state.messages):
-        d = detect_disaster(msg["content"])
-        if d:
-            return d
-    return None
-
-def is_definition_question(text):
-    return any(p in text.lower() for p in ["what is", "define", "meaning of", "explain"])
-
-def is_general_action_question(text):
-    return any(p in text.lower() for p in [
-        "what should i do",
-        "what to do",
-        "during",
-        "precautions",
-        "safety measures"
-    ])
-
-def detect_location(text, disaster):
-    text = text.lower()
-    data = DISASTER_HAZARD_CATEGORIES.get(disaster, {})
-    for cat in ["unsafe", "safe"]:
-        for place in data.get(cat, {}):
-            if place in text:
-                return cat, place
-    return None, None
-
-def detect_place_only(text):
-    places = [
-        "window", "windows", "road", "tree", "roof",
-        "table", "desk", "basement", "higher floor"
-    ]
-    for p in places:
-        if p in text.lower():
-            return p
-    return None
 
 def generate_answer(user_text):
-    disaster = detect_disaster(user_text) or get_last_disaster()
+    text = user_text.lower()
 
-    # Definition
-    if is_definition_question(user_text) and disaster:
-        return DISASTER_DEFINITIONS[disaster]
-
-    # General actions
-    if is_general_action_question(user_text) and disaster:
-        return GENERAL_ACTIONS[disaster]
-
-    # Location-based with disaster
-    if disaster:
-        cat, place = detect_location(user_text, disaster)
-        if cat:
-            info = DISASTER_HAZARD_CATEGORIES[disaster][cat][place]
-            prefix = "Yes, safer." if cat == "safe" else "No, not safe."
-            return (
-                f"{prefix} {info['reason']}\n\n"
-                f"What to do:\n{info['solution']}\n\n"
-                f"How:\n{info['how']}"
-            )
-
-    # Place mentioned but no disaster
-    place_only = detect_place_only(user_text)
-    if place_only:
-        return (
-            "No, it is not safe.\n\n"
-            "Why:\n"
-            "Certain places like windows, roads, or trees can become dangerous during disasters.\n\n"
-            "What to do:\n"
-            "Move to a safer interior or open area depending on the situation.\n\n"
-            "How:\n"
-            "Stay calm, protect your head, and follow official safety instructions."
-        )
+    disaster = detect_disaster(text)
+    if not disaster:
+        disaster = st.session_state.last_disaster
 
     if not disaster:
-        return "Please mention the disaster (earthquake, flood, or cyclone)."
+        return "Please mention the disaster first."
 
-    return GENERAL_ACTIONS[disaster]
+    st.session_state.last_disaster = disaster
+
+    # SAFE
+    for place, info in DISASTER_HAZARD_CATEGORIES[disaster]["safe"].items():
+        if place in text or "where is safe" in text or "safe place" in text:
+            return (
+                "YES — SAFE\n\n"
+                f"Why: {info['reason']}\n\n"
+                f"What to do: {info['solution']}\n\n"
+                f"How: {info['how']}"
+            )
+
+    # UNSAFE
+    for place, info in DISASTER_HAZARD_CATEGORIES[disaster]["unsafe"].items():
+        if place in text:
+            return (
+                "NO — NOT SAFE\n\n"
+                f"Why: {info['reason']}\n\n"
+                f"What to do: {info['solution']}\n\n"
+                f"How: {info['how']}"
+            )
+
+    # Definition
+    if text.startswith("what is"):
+        return DISASTER_DEFINITIONS[disaster]
+
+    # Safety rules / precautions
+    if "safety" in text or "rules" in text or "precaution" in text:
+        return (
+            f"Safety rules for {disaster}:\n\n"
+            + "\n".join("- " + x for x in GENERAL_ACTIONS[disaster]["do"])
+            + "\n\nAvoid:\n"
+            + "\n".join("- " + x for x in GENERAL_ACTIONS[disaster]["dont"])
+        )
+
+    return f"You are asking about {disaster}."
 
 # =========================
-# Chat input and history
+# Input
 # =========================
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
-
 user_input = st.chat_input("Ask about disaster safety...")
 
 if user_input:
@@ -264,4 +283,5 @@ if user_input:
         st.markdown(reply)
 
 st.markdown("---")
-st.caption("⚠️ This chatbot provides general safety guidance only. Always follow local authorities.")
+st.caption(" ⚠️ This chatbot provides general safety guidance only.")
+
